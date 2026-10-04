@@ -28,6 +28,12 @@ final class CreateCampaignRequest
      * @param \DateTimeInterface|null  $endAt           Limite do disparo (null = até concluir).
      * @param bool|null                $autoStart       true inicia sozinha em $startAt.
      * @param array<string, mixed>     $settings        Configurações extras (ex.: ['delay_ms' => 1000]).
+     * @param bool|null                $replyWithoutContext true conta como resposta a primeira mensagem do
+     *                                                  contato sem citar o disparo nem clicar em botão, se
+     *                                                  chegar em $replyWindowHours e abrir conversa nova.
+     *                                                  null = padrão da API (false).
+     * @param int|null                 $replyWindowHours Janela em horas após o disparo (1 a 72).
+     *                                                  null = padrão da API (24).
      */
     public function __construct(
         public readonly string $name,
@@ -42,6 +48,8 @@ final class CreateCampaignRequest
         public readonly ?\DateTimeInterface $endAt = null,
         public readonly ?bool $autoStart = null,
         public readonly array $settings = [],
+        public readonly ?bool $replyWithoutContext = null,
+        public readonly ?int $replyWindowHours = null,
     ) {
     }
 
@@ -82,6 +90,15 @@ final class CreateCampaignRequest
         }
         if ($this->autoStart !== null) {
             $fields['auto_start'] = $this->autoStart ? 'true' : 'false';
+        }
+        if ($this->replyWindowHours !== null && ($this->replyWindowHours < 1 || $this->replyWindowHours > 72)) {
+            throw new ValidationException('interage: CreateCampaignRequest::$replyWindowHours deve estar entre 1 e 72');
+        }
+        if ($this->replyWithoutContext !== null) {
+            $fields['reply_without_context'] = $this->replyWithoutContext ? 'true' : 'false';
+        }
+        if ($this->replyWindowHours !== null) {
+            $fields['reply_window_hours'] = (string) $this->replyWindowHours;
         }
         if ($this->settings !== []) {
             $fields['settings'] = json_encode($this->settings, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);

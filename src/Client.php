@@ -22,7 +22,7 @@ use WonitTecnologia\Interage\Resource\Telephony;
 final class Client
 {
     /** Versão do SDK, enviada no User-Agent (interage-sdk-php/<VERSION>). */
-    public const VERSION = '0.1.0';
+    public const VERSION = '0.1.1';
 
     /** Campanhas de disparo WhatsApp (criar com CSV, listar, iniciar, pausar, cancelar, remover). */
     public readonly Campaigns $campaigns;

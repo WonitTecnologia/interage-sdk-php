@@ -88,6 +88,8 @@ $criada = $cli->campaigns->create(new CreateCampaignRequest(
     templateParams: ['10%'],
     startAt: new DateTimeImmutable('2026-11-27 09:00'),
     autoStart: true,
+    replyWithoutContext: true, // mensagem sem citar o disparo também conta como resposta…
+    replyWindowHours: 48,      // …se chegar em até 48h (1 a 72; padrão da API: 24)
 ));
 // A importação é assíncrona: nasce "pending" e passa a "ready" ao terminar.
 echo $criada->campaignId;
@@ -267,7 +269,7 @@ Erros HTTP viram uma subclasse de `ApiException`, com `$statusCode`, `$apiStatus
 | `ConflictException` | 409 — conflito de estado (ex.: ramal já em chamada) |
 | `UnprocessableEntityException` | 422 — ação não permitida no estado atual |
 | `TooManyRequestsException` | 429 — limite de requisições excedido |
-| `ServerException` | 5xx — erro interno da API |
+| `ServerException` | 5xx — erro da API; `503` é falha temporária, vale tentar de novo |
 | `TransportException` | falha de rede/conexão, sem resposta da API |
 | `ValidationException` | parâmetro inválido detectado pelo SDK, antes de chamar a API |
 | `UnexpectedResponseException` | resposta de sucesso em formato inesperado |
@@ -293,7 +295,8 @@ try {
 ```
 
 O SDK não repete requisições sozinho — a decisão de esperar e tentar de novo fica com
-quem chama.
+quem chama. `401` é sempre a credencial: repetir com o mesmo token não resolve, e um IP
+que acumula 20 respostas `401` em um minuto passa a receber `429` até a janela fechar.
 
 ---
 

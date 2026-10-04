@@ -74,6 +74,40 @@ final class CampaignsTest extends TestCase
         self::assertStringContainsString("5547999999999;Maria", $body);
     }
 
+    public function testCreateEnviaRespostaSemReply(): void
+    {
+        $this->transport->respond(['campaign_id' => 'c1', 'status' => 'pending'], 201);
+
+        $this->client->campaigns->create(new CreateCampaignRequest(
+            'c', 'i', 't', CollisionPolicy::Ignore, 'a.csv', "phone\n5511999998888\n",
+            replyWithoutContext: true,
+            replyWindowHours: 48,
+        ));
+
+        $body = (string) $this->transport->last()->body;
+        self::assertStringContainsString("name=\"reply_without_context\"\r\n\r\ntrue\r\n", $body);
+        self::assertStringContainsString("name=\"reply_window_hours\"\r\n\r\n48\r\n", $body);
+    }
+
+    public function testCreateOmiteRespostaSemReplyNaoInformada(): void
+    {
+        $this->transport->respond(['campaign_id' => 'c1', 'status' => 'pending'], 201);
+
+        $this->client->campaigns->create(new CreateCampaignRequest('c', 'i', 't', CollisionPolicy::Ignore, 'a.csv', 'x'));
+
+        $body = (string) $this->transport->last()->body;
+        self::assertStringNotContainsString('reply_without_context', $body);
+        self::assertStringNotContainsString('reply_window_hours', $body);
+    }
+
+    public function testCreateRecusaJanelaForaDoIntervalo(): void
+    {
+        $this->expectException(ValidationException::class);
+        $this->client->campaigns->create(new CreateCampaignRequest(
+            'c', 'i', 't', CollisionPolicy::Ignore, 'a.csv', 'x', replyWindowHours: 73,
+        ));
+    }
+
     public function testCreateValidaCamposObrigatorios(): void
     {
         $this->expectException(ValidationException::class);

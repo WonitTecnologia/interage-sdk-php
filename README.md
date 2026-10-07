@@ -296,7 +296,8 @@ try {
 
 O SDK não repete requisições sozinho — a decisão de esperar e tentar de novo fica com
 quem chama. `401` é sempre a credencial: repetir com o mesmo token não resolve, e um IP
-que acumula 20 respostas `401` em um minuto passa a receber `429` até a janela fechar.
+que acumula 20 respostas `401` em um minuto passa a receber `429` até a janela fechar —
+exceto para tokens que autenticaram nos últimos 10 minutos, que seguem funcionando.
 
 ---
 
